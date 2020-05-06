@@ -11,7 +11,7 @@ import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
-    var activePlayer = 1 // Random.nextInt(0, 2)+1
+    var activePlayer = Random.nextInt(0, 2)+1
     var player1 = ArrayList<Int>()
     var player2 = ArrayList<Int>()
     var autoPlayer: Boolean =true
@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
 
         Toast.makeText(this, "O jogador que começa é o :$activePlayer", Toast.LENGTH_SHORT)
             .show()
+        if(activePlayer==2){autoPlay(dificult)}
     }
 
     fun btClick(view: View) {
@@ -45,7 +46,6 @@ class MainActivity : AppCompatActivity() {
             R.id.bt9 -> cellId = 9
         }
         //Log.d("btClick", btSelected.id.toString())
-
 
         playGame(cellId,btSelected)
         Log.d("btClick: List Player 1", player1.toString())
@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity() {
             player2.add(cellId)
             board.add(cellId)
         }
+
         btSelected.isEnabled = false
 
         checkWinner()
@@ -107,8 +108,10 @@ class MainActivity : AppCompatActivity() {
 
     }
     fun autoPlay(diff:String): Int {
-        var cellId = 0
+
         var emptyCells = ArrayList<Int>()
+        var bestScore = -100000
+        var cellId = 0
 
         if(board.size == 9){
             Toast.makeText(this, "Empatou é treta!", Toast.LENGTH_LONG).show()
@@ -132,7 +135,7 @@ class MainActivity : AppCompatActivity() {
 
         // diff - hard -> Killing AI
         if(diff=="hard"){
-            var bestScore = -100000
+
 
 
         }
@@ -165,6 +168,7 @@ class MainActivity : AppCompatActivity() {
         activePlayer =1
         player1.clear()
         player2.clear()
+        board.clear()
 
         for (cellId in 1..9){
             var btSelected:Button?
