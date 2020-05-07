@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlin.math.min
 import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
@@ -19,6 +20,12 @@ class MainActivity : AppCompatActivity() {
     var winner = -1
     var dificult = "easy"
 
+    //TODO Array com as celulas da matriz
+    val matBoard = ArrayList<CellOfBoard>()
+
+    //TODO Tabela pra ver quem ganhou
+    val scores = ArrayList<Score>()
+    var score: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +34,72 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "O jogador que começa é o :$activePlayer", Toast.LENGTH_SHORT)
             .show()
         if(activePlayer==2){autoPlay(dificult)}
+
+        //TODO Iniciar a matriz com 9 posicoes todas vazias
+        for (indice in 1..9) {
+            matBoard.add(CellOfBoard())
+        }
+
+        Log.d("Board:", matBoard.toString())
+        //TODO iniciar a lista de pontuacoes pra ver quem vai ganhar
+        scores.add(Score("X", 10))
+        scores.add(Score("O", -10))
+        scores.add(Score("tie", 0))
+    }
+
+    //TODO funcao de minimax
+    private fun minimax(board: ArrayList<CellOfBoard>, depth: Int, isMaximizing: Boolean):  Int{
+        //TODO NECESSITA CRIAR O CHECKWINNER PARA RETORNAR O NOVO SCORE
+        val result = 10
+        var bestScore = 0
+        if (result != null) {
+            score = result
+            return score
+        }
+        if(isMaximizing) {
+            bestScore = -10000000
+            for (indice in 1..9) {
+                //TODO ninguem preencheu essa celula
+                if (board[indice] == null) {
+                    board[indice].value = true
+                    val score = minimax(board, depth + 1, true)
+                    board[indice].value = null
+                    bestScore = min(score, bestScore)
+                }
+
+            }
+            return bestScore
+        } else {
+            bestScore = 10000000
+            for (indice in 1..9) {
+                if(board[indice] == null) {
+                    board[indice].value = true
+                    val score = minimax(board, depth + 1, true)
+                    board[indice].value = null
+                    bestScore = min(score, bestScore)
+                }
+            }
+            return bestScore
+        }
+
+    }
+    //TODO funcao que calcula a jogada da IA
+    fun bestMove():Int {
+        var bestScore = -10000000
+        var move = -1
+        for(indice in 1..9) {
+            if(matBoard[indice].value == null) {
+                matBoard[indice].value = false
+                val score = minimax(matBoard, 0, false)
+                matBoard[indice].value = null
+                if ( score > bestScore ) {
+                    bestScore = score
+                    move = indice
+                }
+            }
+        }
+        matBoard[move].value = false
+        return move
     }
 
     fun btClick(view: View) {
@@ -50,7 +123,7 @@ class MainActivity : AppCompatActivity() {
         playGame(cellId,btSelected)
         Log.d("btClick: List Player 1", player1.toString())
         Log.d("btClick: List Player 2", player2.toString())
-        Log.d("btClick: List Board", board.toString())
+        Log.d("btClick: List Board", matBoard.toString())
     }
 
     fun playGame(cellId: Int, btSelected: Button) {
@@ -58,7 +131,7 @@ class MainActivity : AppCompatActivity() {
             btSelected.text = "x"
             btSelected.setBackgroundResource(R.color.blue)
             player1.add(cellId)
-            board.add(cellId)
+            matBoard.add(CellOfBoard(true))
             activePlayer = 2
             if(autoPlayer){autoPlay(dificult)}
 
@@ -67,7 +140,7 @@ class MainActivity : AppCompatActivity() {
             btSelected.setBackgroundResource(R.color.green)
             activePlayer = 1
             player2.add(cellId)
-            board.add(cellId)
+            matBoard.add(CellOfBoard(false))
         }
 
         btSelected.isEnabled = false
@@ -110,9 +183,7 @@ class MainActivity : AppCompatActivity() {
     fun autoPlay(diff:String): Int {
 
         var emptyCells = ArrayList<Int>()
-        var bestScore = -100000
-        var cellId = 0
-
+        var cellId =0
         if(board.size == 9){
             Toast.makeText(this, "Empatou é treta!", Toast.LENGTH_LONG).show()
             return 0
@@ -124,8 +195,7 @@ class MainActivity : AppCompatActivity() {
                 emptyCells.add(cellId)
             }
         }
-
-
+        Log.d("btClick: List Empty", emptyCells.toString())
         // diff - easy -> Random empty spot
         if(diff== "easy"){
             val r = Random
@@ -135,9 +205,7 @@ class MainActivity : AppCompatActivity() {
 
         // diff - hard -> Killing AI
         if(diff=="hard"){
-
-
-
+           cellId = bestMove()
         }
 
 
@@ -156,12 +224,6 @@ class MainActivity : AppCompatActivity() {
         }
         playGame(cellId, btSelected)
         return 0
-    }
-
-
-    private fun minimax(board:ArrayList<Int>, depth:Int, isMaximizing:Boolean): Int {
-
-        return 1
     }
 
     fun restartGame(view: View) {
@@ -190,3 +252,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+
+//TODO Classe das celulas da matriz
+class CellOfBoard(var value: Boolean? = null)
+
+//TODO Classe que indica o score do minimax
+class Score(val key: String, val value: Int)
